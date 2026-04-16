@@ -1,0 +1,930 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kalendarz 2026 — Wspólny Wypad</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Syne:wght@700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0d0f14;
+    --surface: #13161e;
+    --surface2: #1a1e2a;
+    --border: #242838;
+    --text: #e8eaf0;
+    --muted: #5a6080;
+    --accent: #ffffff;
+
+    --purple: #a855f7;
+    --green:  #22c55e;
+    --red:    #ef4444;
+    --yellow: #eab308;
+    --blue:   #3b82f6;
+
+    --tier2-bg:     #381126;
+    --tier2-border: #f472b6;
+    --tier2-glow:   rgba(244,114,182,0.32);
+
+    --tier3-bg:     #2a0b1b;
+    --tier3-border: #9f1239;
+    --tier3-glow:   rgba(159,18,57,0.36);
+
+    --tier4-bg:     #3d0a0a;
+    --tier4-border: #ef4444;
+    --tier4-glow:   rgba(239,68,68,0.35);
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Inter', sans-serif;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* ── HEADER ── */
+  header {
+    padding: 28px 36px 20px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+    flex-wrap: wrap;
+  }
+  .header-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 26px;
+    font-weight: 800;
+    letter-spacing: -0.5px;
+    color: var(--accent);
+  }
+  .header-title span {
+    color: var(--muted);
+    font-weight: 700;
+  }
+  .header-sub {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    color: var(--muted);
+    margin-top: 3px;
+    letter-spacing: 0.5px;
+  }
+
+  /* ── LEGEND BADGE ── */
+  .match-legend {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 6px;
+    background: #171118;
+    border: 1px solid #3b2431;
+    border-radius: 8px;
+    padding: 8px 12px;
+    font-size: 11px;
+    color: #fbcfe8;
+    font-weight: 500;
+  }
+  .match-legend .legend-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .match-legend .dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+  .match-legend .dot.two { background: var(--tier2-border); box-shadow: 0 0 6px var(--tier2-glow); }
+  .match-legend .dot.three { background: var(--tier3-border); box-shadow: 0 0 6px var(--tier3-glow); }
+  .match-legend .dot.four { background: var(--tier4-border); box-shadow: 0 0 6px var(--tier4-glow); }
+
+  /* ── LAYOUT ── */
+  .layout {
+    display: flex;
+    flex: 1;
+    gap: 0;
+    overflow: hidden;
+  }
+
+  /* ── SIDEBAR ── */
+  aside {
+    width: 220px;
+    flex-shrink: 0;
+    background: var(--surface);
+    border-right: 1px solid var(--border);
+    padding: 24px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .sidebar-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    color: var(--muted);
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    padding: 0 6px;
+    margin-bottom: 8px;
+  }
+
+  .user-card {
+    border-radius: 10px;
+    border: 1.5px solid var(--border);
+    padding: 12px 14px;
+    cursor: pointer;
+    transition: border-color 0.15s, background 0.15s, transform 0.1s;
+    background: transparent;
+    position: relative;
+    overflow: hidden;
+  }
+  .user-card:hover { background: var(--surface2); transform: translateX(2px); }
+  .user-card.active {
+    border-color: var(--user-color, #fff);
+    background: color-mix(in srgb, var(--user-color, #fff) 10%, transparent);
+  }
+  .user-card.active::before {
+    content: '';
+    position: absolute;
+    left: 0; top: 0; bottom: 0;
+    width: 3px;
+    background: var(--user-color, #fff);
+    border-radius: 3px 0 0 3px;
+  }
+
+  .user-top {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 8px;
+  }
+  .user-avatar {
+    width: 32px; height: 32px;
+    border-radius: 8px;
+    background: color-mix(in srgb, var(--user-color, #888) 20%, var(--surface2));
+    border: 1.5px solid var(--user-color, #888);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Syne', sans-serif;
+    font-size: 13px;
+    font-weight: 800;
+    color: var(--user-color, #888);
+    flex-shrink: 0;
+  }
+  .user-name {
+    font-family: 'Syne', sans-serif;
+    font-size: 14px;
+    font-weight: 700;
+    letter-spacing: 0.3px;
+  }
+  .user-count {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    color: var(--muted);
+    margin-top: 1px;
+  }
+
+  /* color picker row */
+  .color-row {
+    display: flex;
+    gap: 6px;
+    margin-top: 4px;
+  }
+  .color-dot {
+    width: 18px; height: 18px;
+    border-radius: 50%;
+    border: 2px solid transparent;
+    cursor: pointer;
+    transition: transform 0.12s, border-color 0.12s;
+    flex-shrink: 0;
+  }
+  .color-dot:hover { transform: scale(1.25); }
+  .color-dot.selected { border-color: #fff; transform: scale(1.15); }
+  .color-dot[data-color="purple"] { background: var(--purple); }
+  .color-dot[data-color="green"]  { background: var(--green); }
+  .color-dot[data-color="red"]    { background: var(--red); }
+  .color-dot[data-color="yellow"] { background: var(--yellow); }
+  .color-dot[data-color="blue"]   { background: var(--blue); }
+
+  /* sidebar footer */
+  .sidebar-footer {
+    margin-top: auto;
+    padding-top: 16px;
+    border-top: 1px solid var(--border);
+  }
+  .clear-btn {
+    width: 100%;
+    padding: 9px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: transparent;
+    color: var(--muted);
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    cursor: pointer;
+    transition: background 0.15s, color 0.15s;
+    letter-spacing: 0.5px;
+  }
+  .clear-btn:hover { background: var(--surface2); color: var(--text); }
+
+  /* ── CALENDAR MAIN ── */
+  main {
+    flex: 1;
+    padding: 28px 28px 40px;
+    overflow-y: auto;
+  }
+
+  .year-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 20px;
+  }
+
+  /* ── MONTH ── */
+  .month {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    overflow: hidden;
+    transition: border-color 0.2s;
+  }
+  .month:hover { border-color: color-mix(in srgb, var(--border) 60%, #fff 10%); }
+
+  .month-header {
+    padding: 14px 16px 10px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+  }
+  .month-name {
+    font-family: 'Syne', sans-serif;
+    font-size: 16px;
+    font-weight: 800;
+    letter-spacing: -0.3px;
+  }
+  .month-num {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    color: var(--muted);
+  }
+
+  .weekdays {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    padding: 8px 10px 4px;
+    gap: 2px;
+  }
+  .weekday {
+    text-align: center;
+    font-family: 'DM Mono', monospace;
+    font-size: 9px;
+    color: var(--muted);
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+  }
+  .weekday.weekend { color: #3d4460; }
+
+  .days {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    padding: 4px 10px 12px;
+    gap: 3px;
+  }
+
+  /* ── DAY CELL ── */
+  .day {
+    aspect-ratio: 1;
+    border-radius: 7px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    padding: 4px 2px 2px;
+    cursor: pointer;
+    border: 1.5px solid transparent;
+    transition: background 0.12s, border-color 0.12s, transform 0.08s;
+    position: relative;
+    min-height: 38px;
+  }
+  .day:hover:not(.empty) {
+    background: var(--surface2);
+    transform: scale(1.08);
+    z-index: 2;
+  }
+  .day.empty { cursor: default; }
+  .day.today .day-num {
+    color: var(--accent);
+    background: var(--surface2);
+    border-radius: 50%;
+    width: 20px; height: 20px;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 600;
+    font-size: 11px;
+  }
+
+  /* overlap states */
+  .day.match-2 {
+    background: color-mix(in srgb, var(--tier2-bg) 72%, transparent) !important;
+    border-color: var(--tier2-border) !important;
+    box-shadow: 0 0 8px var(--tier2-glow);
+  }
+  .day.match-2 .day-num { color: #f9a8d4 !important; font-weight: 700; }
+
+  .day.match-3 {
+    background: color-mix(in srgb, var(--tier3-bg) 80%, transparent) !important;
+    border-color: var(--tier3-border) !important;
+    box-shadow: 0 0 10px var(--tier3-glow);
+  }
+  .day.match-3 .day-num { color: #fda4af !important; font-weight: 700; }
+
+  .day.match-4 {
+    background: var(--tier4-bg) !important;
+    border-color: var(--tier4-border) !important;
+    box-shadow: 0 0 12px var(--tier4-glow);
+    animation: day-pulse 2s ease-in-out infinite;
+  }
+  @keyframes day-pulse {
+    0%,100% { box-shadow: 0 0 6px var(--tier4-glow); }
+    50%      { box-shadow: 0 0 14px var(--tier4-glow), 0 0 4px #ef4444; }
+  }
+  .day.match-4 .day-num { color: #fca5a5 !important; font-weight: 700; }
+
+  /* single user marked */
+  .day.marked {
+    border-color: var(--day-color, var(--border));
+    background: color-mix(in srgb, var(--day-color, transparent) 12%, transparent);
+  }
+
+  .day-num {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    color: var(--text);
+    line-height: 1;
+    margin-bottom: 3px;
+    flex-shrink: 0;
+  }
+  .day.weekend .day-num { color: var(--muted); }
+
+  /* dots row */
+  .dots {
+    display: flex;
+    gap: 2px;
+    flex-wrap: wrap;
+    justify-content: center;
+    max-width: 100%;
+  }
+  .dot-u {
+    width: 5px; height: 5px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  /* ── STATS BAR ── */
+  .stats-bar {
+    display: flex;
+    gap: 20px;
+    padding: 0 36px 20px;
+    flex-wrap: wrap;
+  }
+  .stat {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12px;
+  }
+  .stat-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+  .stat-label { color: var(--muted); font-family: 'DM Mono', monospace; }
+  .stat-val { color: var(--text); font-weight: 600; font-family: 'DM Mono', monospace; }
+
+  /* ── TOOLTIP ── */
+  .tooltip {
+    position: fixed;
+    background: #1a1e2a;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 8px 12px;
+    font-size: 12px;
+    color: var(--text);
+    pointer-events: none;
+    z-index: 100;
+    opacity: 0;
+    transition: opacity 0.12s;
+    max-width: 180px;
+    line-height: 1.6;
+  }
+  .tooltip.visible { opacity: 1; }
+  .tooltip-name { font-family: 'Syne', sans-serif; font-size: 11px; font-weight: 700; color: var(--muted); margin-bottom: 4px; }
+  .tooltip-status { font-family: 'DM Mono', monospace; font-size: 10px; margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.4px; }
+  .tooltip-user { display: flex; align-items: center; gap: 6px; }
+  .tooltip-user-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+
+  /* ── MATCH COUNTER ── */
+  .match-counter {
+    background: color-mix(in srgb, var(--tier4-bg) 75%, transparent);
+    border: 1px solid var(--tier4-border);
+    border-radius: 20px;
+    padding: 4px 12px;
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    color: #fecaca;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .match-counter .num {
+    font-weight: 700;
+    font-size: 14px;
+    font-family: 'Syne', sans-serif;
+    color: var(--tier4-border);
+  }
+
+  .mobile-user-toggle-wrap { display: none; }
+  .sidebar-backdrop { display: none; }
+
+  @media (max-width: 900px) {
+    header { padding: 16px 14px 12px; }
+    .header-title { font-size: 20px; line-height: 1.05; }
+    .header-sub { font-size: 10px; line-height: 1.35; }
+    .stats-bar { padding: 0 14px 12px; gap: 12px; }
+    .stat { font-size: 11px; }
+    .layout { position: relative; overflow: visible; }
+
+    .mobile-user-toggle-wrap { display: block; padding: 0 14px 12px; }
+    .mobile-user-toggle {
+      width: 100%;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      background: var(--surface);
+      color: var(--text);
+      padding: 10px 12px;
+      font-family: 'DM Mono', monospace;
+      font-size: 11px;
+      letter-spacing: 0.5px;
+      text-align: left;
+      cursor: pointer;
+    }
+
+    aside {
+      position: fixed;
+      left: 0;
+      top: 0;
+      bottom: 0;
+      width: min(82vw, 320px);
+      z-index: 100;
+      transform: translateX(-105%);
+      transition: transform 0.22s ease;
+      box-shadow: 8px 0 24px rgba(0,0,0,0.45);
+      padding-top: 16px;
+      overflow-y: auto;
+    }
+    aside.open { transform: translateX(0); }
+
+    .sidebar-backdrop {
+      display: block;
+      position: fixed;
+      inset: 0;
+      background: rgba(4,7,13,0.56);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.2s;
+      z-index: 90;
+    }
+    .sidebar-backdrop.show { opacity: 1; pointer-events: auto; }
+
+    main { padding: 14px 12px 24px; }
+    .year-grid { grid-template-columns: 1fr; gap: 14px; }
+  }
+
+  /* Scrollbar */
+  main::-webkit-scrollbar { width: 5px; }
+  main::-webkit-scrollbar-track { background: transparent; }
+  main::-webkit-scrollbar-thumb { background: var(--border); border-radius: 10px; }
+</style>
+</head>
+<body>
+
+<header>
+  <div>
+    <div class="header-title">WSPÓLNY WYPAD <span>2026</span></div>
+    <div class="header-sub">ZAZNACZ DNI KIEDY JESTEŚ WOLNY — KLIKNIJ DZIEŃ W KALENDARZU</div>
+  </div>
+  <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
+    <div class="match-counter">
+      <span>WSPÓLNE DNI:</span>
+      <span class="num" id="matchCount">0</span>
+    </div>
+    <div class="match-legend">
+      <div class="legend-row"><div class="dot two"></div><span>2 osoby: potencjał na poddymke..</span></div>
+      <div class="legend-row"><div class="dot three"></div><span>3 osoby: poddymka?</span></div>
+      <div class="legend-row"><div class="dot four"></div><span>4 osoby: klepnięte</span></div>
+    </div>
+  </div>
+</header>
+
+<div class="stats-bar" id="statsBar"></div>
+<div class="mobile-user-toggle-wrap">
+  <button class="mobile-user-toggle" id="mobileUserToggle" type="button" aria-expanded="false">UCZESTNIK: SPLOT (ZMIEŃ)</button>
+</div>
+<div class="sidebar-backdrop" id="sidebarBackdrop"></div>
+
+<div class="layout">
+  <aside>
+    <div class="sidebar-label">Uczestnicy</div>
+
+    <div class="user-card active" data-user="SPLOT" style="--user-color: var(--purple)" onclick="selectUser('SPLOT')">
+      <div class="user-top">
+        <div class="user-avatar">S</div>
+        <div>
+          <div class="user-name">SPLOT</div>
+          <div class="user-count" id="count-SPLOT">0 dni</div>
+        </div>
+      </div>
+      <div class="color-row" onclick="event.stopPropagation()">
+        <div class="color-dot selected" data-color="purple" data-user="SPLOT" onclick="setColor('SPLOT','purple')"></div>
+        <div class="color-dot" data-color="green"  data-user="SPLOT" onclick="setColor('SPLOT','green')"></div>
+        <div class="color-dot" data-color="red"    data-user="SPLOT" onclick="setColor('SPLOT','red')"></div>
+        <div class="color-dot" data-color="yellow" data-user="SPLOT" onclick="setColor('SPLOT','yellow')"></div>
+        <div class="color-dot" data-color="blue"   data-user="SPLOT" onclick="setColor('SPLOT','blue')"></div>
+      </div>
+    </div>
+
+    <div class="user-card" data-user="MAKS" style="--user-color: var(--green)" onclick="selectUser('MAKS')">
+      <div class="user-top">
+        <div class="user-avatar">M</div>
+        <div>
+          <div class="user-name">MAKS</div>
+          <div class="user-count" id="count-MAKS">0 dni</div>
+        </div>
+      </div>
+      <div class="color-row" onclick="event.stopPropagation()">
+        <div class="color-dot" data-color="purple" data-user="MAKS" onclick="setColor('MAKS','purple')"></div>
+        <div class="color-dot selected" data-color="green"  data-user="MAKS" onclick="setColor('MAKS','green')"></div>
+        <div class="color-dot" data-color="red"    data-user="MAKS" onclick="setColor('MAKS','red')"></div>
+        <div class="color-dot" data-color="yellow" data-user="MAKS" onclick="setColor('MAKS','yellow')"></div>
+        <div class="color-dot" data-color="blue"   data-user="MAKS" onclick="setColor('MAKS','blue')"></div>
+      </div>
+    </div>
+
+    <div class="user-card" data-user="SIKOR" style="--user-color: var(--yellow)" onclick="selectUser('SIKOR')">
+      <div class="user-top">
+        <div class="user-avatar">Si</div>
+        <div>
+          <div class="user-name">SIKOR</div>
+          <div class="user-count" id="count-SIKOR">0 dni</div>
+        </div>
+      </div>
+      <div class="color-row" onclick="event.stopPropagation()">
+        <div class="color-dot" data-color="purple" data-user="SIKOR" onclick="setColor('SIKOR','purple')"></div>
+        <div class="color-dot" data-color="green"  data-user="SIKOR" onclick="setColor('SIKOR','green')"></div>
+        <div class="color-dot" data-color="red"    data-user="SIKOR" onclick="setColor('SIKOR','red')"></div>
+        <div class="color-dot selected" data-color="yellow" data-user="SIKOR" onclick="setColor('SIKOR','yellow')"></div>
+        <div class="color-dot" data-color="blue"   data-user="SIKOR" onclick="setColor('SIKOR','blue')"></div>
+      </div>
+    </div>
+
+    <div class="user-card" data-user="ZDRZALIK" style="--user-color: var(--blue)" onclick="selectUser('ZDRZALIK')">
+      <div class="user-top">
+        <div class="user-avatar">Z</div>
+        <div>
+          <div class="user-name">ZDRZALIK</div>
+          <div class="user-count" id="count-ZDRZALIK">0 dni</div>
+        </div>
+      </div>
+      <div class="color-row" onclick="event.stopPropagation()">
+        <div class="color-dot" data-color="purple"   data-user="ZDRZALIK" onclick="setColor('ZDRZALIK','purple')"></div>
+        <div class="color-dot" data-color="green"    data-user="ZDRZALIK" onclick="setColor('ZDRZALIK','green')"></div>
+        <div class="color-dot" data-color="red"      data-user="ZDRZALIK" onclick="setColor('ZDRZALIK','red')"></div>
+        <div class="color-dot" data-color="yellow"   data-user="ZDRZALIK" onclick="setColor('ZDRZALIK','yellow')"></div>
+        <div class="color-dot selected" data-color="blue" data-user="ZDRZALIK" onclick="setColor('ZDRZALIK','blue')"></div>
+      </div>
+    </div>
+
+    <div class="sidebar-footer">
+      <button class="clear-btn" onclick="clearAll()">WYCZYŚĆ WSZYSTKO</button>
+    </div>
+  </aside>
+
+  <main>
+    <div class="year-grid" id="yearGrid"></div>
+  </main>
+</div>
+
+<div class="tooltip" id="tooltip"></div>
+
+<script>
+// ── STATE ──
+const USERS = ['SPLOT', 'MAKS', 'SIKOR', 'ZDRZALIK'];
+const COLOR_MAP = { purple: '#a855f7', green: '#22c55e', red: '#ef4444', yellow: '#eab308', blue: '#3b82f6' };
+const MONTH_NAMES = ['Styczeń','Luty','Marzec','Kwiecień','Maj','Czerwiec','Lipiec','Sierpień','Wrzesień','Październik','Listopad','Grudzień'];
+const WEEKDAYS = ['Pn','Wt','Śr','Cz','Pt','So','Nd'];
+const DAY_STATUS = {
+  2: { className: 'match-2', label: 'potencjał na poddymke..', color: '#f472b6' },
+  3: { className: 'match-3', label: 'poddymka?', color: '#9f1239' },
+  4: { className: 'match-4', label: 'klepnięte', color: '#ef4444' }
+};
+
+let state = {
+  activeUser: 'SPLOT',
+  colors: { SPLOT: 'purple', MAKS: 'green', SIKOR: 'yellow', ZDRZALIK: 'blue' },
+  availability: {}  // { "2026-01-15": ["SPLOT", "MAKS"] }
+};
+
+// Load from localStorage
+function loadState() {
+  try {
+    const saved = localStorage.getItem('wypad2026');
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      state.colors = parsed.colors || state.colors;
+      state.availability = parsed.availability || {};
+    }
+  } catch(e) {}
+}
+function saveState() {
+  try { localStorage.setItem('wypad2026', JSON.stringify({ colors: state.colors, availability: state.availability })); } catch(e) {}
+}
+
+// ── HELPERS ──
+function dateKey(y, m, d) {
+  return `${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+}
+function cssColor(user) { return COLOR_MAP[state.colors[user]] || '#888'; }
+function getDayStatus(count) { return DAY_STATUS[count] || null; }
+function isMobileView() { return window.matchMedia('(max-width: 900px)').matches; }
+
+function setSidebarOpen(open) {
+  const aside = document.querySelector('aside');
+  const backdrop = document.getElementById('sidebarBackdrop');
+  const button = document.getElementById('mobileUserToggle');
+  if (!aside || !backdrop) return;
+  aside.classList.toggle('open', open);
+  backdrop.classList.toggle('show', open);
+  if (button) button.setAttribute('aria-expanded', open ? 'true' : 'false');
+}
+
+function updateMobileUserButton() {
+  const button = document.getElementById('mobileUserToggle');
+  if (!button) return;
+  button.textContent = `UCZESTNIK: ${state.activeUser} (ZMIEŃ)`;
+}
+
+// ── USER SELECTION ──
+function selectUser(name) {
+  state.activeUser = name;
+  document.querySelectorAll('.user-card').forEach(c => {
+    c.classList.toggle('active', c.dataset.user === name);
+  });
+  updateMobileUserButton();
+  if (isMobileView()) setSidebarOpen(false);
+}
+
+function setColor(user, color) {
+  state.colors[user] = color;
+  // update selected dot UI
+  document.querySelectorAll(`.color-dot[data-user="${user}"]`).forEach(d => {
+    d.classList.toggle('selected', d.dataset.color === color);
+  });
+  // update card CSS var
+  const card = document.querySelector(`.user-card[data-user="${user}"]`);
+  if (card) card.style.setProperty('--user-color', COLOR_MAP[color]);
+  // update avatar color
+  const avatar = card?.querySelector('.user-avatar');
+  if (avatar) avatar.style.color = COLOR_MAP[color];
+  if (avatar) avatar.style.borderColor = COLOR_MAP[color];
+  if (avatar) avatar.style.background = COLOR_MAP[color] + '22';
+
+  saveState();
+  renderCalendar();
+}
+
+// ── TOGGLE DAY ──
+function toggleDay(key) {
+  const user = state.activeUser;
+  if (!state.availability[key]) state.availability[key] = [];
+  const arr = state.availability[key];
+  const idx = arr.indexOf(user);
+  if (idx === -1) arr.push(user);
+  else arr.splice(idx, 1);
+  if (arr.length === 0) delete state.availability[key];
+  saveState();
+  renderCalendar();
+}
+
+// ── RENDER ──
+function renderCalendar() {
+  const grid = document.getElementById('yearGrid');
+  grid.innerHTML = '';
+
+  const today = new Date();
+  let matchTotal = 0;
+
+  for (let m = 0; m < 12; m++) {
+    const monthEl = document.createElement('div');
+    monthEl.className = 'month';
+
+    // header
+    const hdr = document.createElement('div');
+    hdr.className = 'month-header';
+    hdr.innerHTML = `<span class="month-name">${MONTH_NAMES[m]}</span><span class="month-num">${String(m+1).padStart(2,'0')}</span>`;
+    monthEl.appendChild(hdr);
+
+    // weekday labels
+    const wkRow = document.createElement('div');
+    wkRow.className = 'weekdays';
+    WEEKDAYS.forEach((wd, i) => {
+      const span = document.createElement('div');
+      span.className = 'weekday' + (i >= 5 ? ' weekend' : '');
+      span.textContent = wd;
+      wkRow.appendChild(span);
+    });
+    monthEl.appendChild(wkRow);
+
+    // days grid
+    const daysEl = document.createElement('div');
+    daysEl.className = 'days';
+
+    // first day of month (Monday=0)
+    const firstDay = new Date(2026, m, 1).getDay();
+    const offset = (firstDay === 0) ? 6 : firstDay - 1;
+    const daysInMonth = new Date(2026, m+1, 0).getDate();
+
+    for (let i = 0; i < offset; i++) {
+      const empty = document.createElement('div');
+      empty.className = 'day empty';
+      daysEl.appendChild(empty);
+    }
+
+    for (let d = 1; d <= daysInMonth; d++) {
+      const key = dateKey(2026, m, d);
+      const users = state.availability[key] || [];
+      const dow = new Date(2026, m, d).getDay(); // 0=Sun,6=Sat
+      const isWeekend = dow === 0 || dow === 6;
+      const isToday = today.getFullYear() === 2026 && today.getMonth() === m && today.getDate() === d;
+      const dayStatus = getDayStatus(users.length);
+
+      if (dayStatus) matchTotal++;
+
+      const cell = document.createElement('div');
+      let cls = 'day';
+      if (isWeekend) cls += ' weekend';
+      if (isToday) cls += ' today';
+      if (dayStatus) cls += ` ${dayStatus.className}`;
+      else if (users.length === 1) {
+        cls += ' marked';
+        cell.style.setProperty('--day-color', cssColor(users[0]));
+      }
+      cell.className = cls;
+      cell.dataset.key = key;
+      cell.dataset.date = `${d} ${MONTH_NAMES[m]}`;
+
+      const numEl = document.createElement('div');
+      numEl.className = 'day-num';
+      numEl.textContent = d;
+      cell.appendChild(numEl);
+
+      if (users.length > 0) {
+        const dotsEl = document.createElement('div');
+        dotsEl.className = 'dots';
+        users.forEach(u => {
+          const dot = document.createElement('div');
+          dot.className = 'dot-u';
+          dot.style.background = cssColor(u);
+          dotsEl.appendChild(dot);
+        });
+        cell.appendChild(dotsEl);
+      }
+
+      cell.addEventListener('click', () => toggleDay(key));
+      cell.addEventListener('mouseenter', (e) => showTooltip(e, key, d, m, users));
+      cell.addEventListener('mousemove', (e) => moveTooltip(e));
+      cell.addEventListener('mouseleave', hideTooltip);
+
+      daysEl.appendChild(cell);
+    }
+
+    monthEl.appendChild(daysEl);
+    grid.appendChild(monthEl);
+  }
+
+  document.getElementById('matchCount').textContent = matchTotal;
+  updateStats();
+  updateSidebarColors();
+}
+
+function updateSidebarColors() {
+  USERS.forEach(u => {
+    const card = document.querySelector(`.user-card[data-user="${u}"]`);
+    if (!card) return;
+    card.style.setProperty('--user-color', cssColor(u));
+    const avatar = card.querySelector('.user-avatar');
+    if (avatar) {
+      avatar.style.color = cssColor(u);
+      avatar.style.borderColor = cssColor(u);
+      avatar.style.background = cssColor(u) + '22';
+    }
+    const count = Object.values(state.availability).filter(arr => arr.includes(u)).length;
+    const countEl = document.getElementById(`count-${u}`);
+    if (countEl) countEl.textContent = `${count} ${count === 1 ? 'dzień' : count < 5 ? 'dni' : 'dni'}`;
+  });
+}
+
+function updateStats() {
+  const bar = document.getElementById('statsBar');
+  bar.innerHTML = '';
+  USERS.forEach(u => {
+    const count = Object.values(state.availability).filter(arr => arr.includes(u)).length;
+    const stat = document.createElement('div');
+    stat.className = 'stat';
+    stat.innerHTML = `<div class="stat-dot" style="background:${cssColor(u)}"></div><span class="stat-label">${u}</span><span class="stat-val">${count}</span>`;
+    bar.appendChild(stat);
+  });
+  const two = Object.values(state.availability).filter(arr => arr.length === 2).length;
+  const three = Object.values(state.availability).filter(arr => arr.length === 3).length;
+  const four = Object.values(state.availability).filter(arr => arr.length === 4).length;
+
+  const statusRows = [
+    { label: 'POTENCJAŁ', value: two, color: '#f472b6' },
+    { label: 'PODDYMKA?', value: three, color: '#9f1239' },
+    { label: 'KLEPNIĘTE', value: four, color: '#ef4444' }
+  ];
+
+  statusRows.forEach(row => {
+    const stat = document.createElement('div');
+    stat.className = 'stat';
+    stat.innerHTML = `<div class="stat-dot" style="background:${row.color};box-shadow:0 0 5px ${row.color}"></div><span class="stat-label">${row.label}</span><span class="stat-val" style="color:${row.color}">${row.value}</span>`;
+    bar.appendChild(stat);
+  });
+}
+
+// ── TOOLTIP ──
+let tooltipEl;
+function showTooltip(e, key, d, m, users) {
+  if (!tooltipEl) tooltipEl = document.getElementById('tooltip');
+  if (users.length === 0) { hideTooltip(); return; }
+  const dayStatus = getDayStatus(users.length);
+  let html = `<div class="tooltip-name">${d} ${MONTH_NAMES[m]}</div>`;
+  if (dayStatus) html += `<div class="tooltip-status" style="color:${dayStatus.color}">${dayStatus.label}</div>`;
+  users.forEach(u => {
+    html += `<div class="tooltip-user"><div class="tooltip-user-dot" style="background:${cssColor(u)}"></div>${u}</div>`;
+  });
+  tooltipEl.innerHTML = html;
+  tooltipEl.classList.add('visible');
+  moveTooltip(e);
+}
+function moveTooltip(e) {
+  if (!tooltipEl) return;
+  tooltipEl.style.left = (e.clientX + 14) + 'px';
+  tooltipEl.style.top = (e.clientY - 10) + 'px';
+}
+function hideTooltip() {
+  if (!tooltipEl) return;
+  tooltipEl.classList.remove('visible');
+}
+
+// ── CLEAR ALL ──
+function clearAll() {
+  if (!confirm('Na pewno wyczyścić wszystkie zaznaczenia?')) return;
+  state.availability = {};
+  saveState();
+  renderCalendar();
+}
+
+// ── INIT ──
+loadState();
+// sync color dots on load
+USERS.forEach(u => {
+  document.querySelectorAll(`.color-dot[data-user="${u}"]`).forEach(d => {
+    d.classList.toggle('selected', d.dataset.color === state.colors[u]);
+  });
+});
+
+const mobileUserToggle = document.getElementById('mobileUserToggle');
+if (mobileUserToggle) {
+  mobileUserToggle.addEventListener('click', () => {
+    const isOpen = document.querySelector('aside')?.classList.contains('open');
+    setSidebarOpen(!isOpen);
+  });
+}
+
+const sidebarBackdrop = document.getElementById('sidebarBackdrop');
+if (sidebarBackdrop) {
+  sidebarBackdrop.addEventListener('click', () => setSidebarOpen(false));
+}
+
+window.addEventListener('resize', () => {
+  if (!isMobileView()) setSidebarOpen(false);
+});
+window.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') setSidebarOpen(false);
+});
+
+updateMobileUserButton();
+renderCalendar();
+</script>
+</body>
+</html>
